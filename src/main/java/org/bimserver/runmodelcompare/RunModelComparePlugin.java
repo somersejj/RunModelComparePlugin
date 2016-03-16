@@ -13,7 +13,7 @@ import org.bimserver.models.store.ServiceDescriptor;
 import org.bimserver.models.store.StoreFactory;
 import org.bimserver.models.store.Trigger;
 import org.bimserver.plugins.PluginConfiguration;
-import org.bimserver.plugins.PluginManagerInterface;
+import org.bimserver.plugins.PluginContext;
 import org.bimserver.plugins.services.BimServerClientInterface;
 import org.bimserver.plugins.services.NewRevisionHandler;
 import org.bimserver.plugins.services.ServicePlugin;
@@ -31,10 +31,9 @@ public class RunModelComparePlugin extends ServicePlugin  {
 	private static final String NAMESPACE = "http://bimserver.org/runModelComparePlugin";
 	
 	@Override
-    public void init(PluginManagerInterface pluginManager) throws PluginException {
-        super.init(pluginManager);
-        initialized = true;
-    }
+	public void init(PluginContext pluginContext) throws PluginException {
+		super.init(pluginContext);
+	}
 
 	@Override
 	public void register(long uoid,
@@ -84,32 +83,18 @@ public class RunModelComparePlugin extends ServicePlugin  {
 	}
 
 	@Override
-	public void unregister(SInternalServicePluginConfiguration internalService) {
-		 	
+	public String getTitle() {
+		return "RunModelComparePlugin";
 	}
+
 	@Override
-	public boolean isInitialized() {
-		return initialized;
+	public ObjectDefinition getSettingsDefinition() {
+		ObjectDefinition objectDefinition = StoreFactory.eINSTANCE.createObjectDefinition();
+		return objectDefinition;
+	}
+
+	@Override
+	public void unregister(SInternalServicePluginConfiguration internalService) {
 	}
 	
-	public String getDescription() {
-		return "Simplified Model service plugin" ;
-	}
-
-	public String getDefaultName() {
-		return  "Simplified Model service plugin" ;
-	}
-
-	public String getVersion() {
-		return "0.1" ;
-	}
-
-	public ObjectDefinition getSettingsDefinition() {
-		return null;
-	}
-
-	@Override
-	public String getTitle() {
-		return "Simplified Model service plugin" ;
-	}
 }
