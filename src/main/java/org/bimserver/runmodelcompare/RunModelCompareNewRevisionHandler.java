@@ -4,8 +4,10 @@ import java.util.List;
 
 import org.bimserver.LocalDevSetup;
 import org.bimserver.interfaces.objects.SCompareType;
+import org.bimserver.interfaces.objects.SModelComparePluginConfiguration;
 import org.bimserver.interfaces.objects.SObjectType;
 import org.bimserver.interfaces.objects.SProject;
+import org.bimserver.interfaces.objects.SRevision;
 import org.bimserver.plugins.services.BimServerClientInterface;
 import org.bimserver.plugins.services.NewRevisionHandler;
 import org.bimserver.shared.exceptions.PublicInterfaceNotFoundException;
@@ -26,19 +28,36 @@ public class RunModelCompareNewRevisionHandler  implements NewRevisionHandler {
 		try {
 			project = bimServerClientInterface.getBimsie1ServiceInterface().getProjectByPoid(poid);
 			LOGGER.info("Run Model Compare service plugin is called");
-				Long sId = bimServerClientInterface.getBimsie1ServiceInterface().getSerializerByName("Ifc2x3").getOid();
-			    Long roid1 = new Long(roid);
-			    List<Long> list = project.getRevisions();
-			    for (Long roid2 : list)
-			    {
-			    	if (roid2.longValue() != roid1.longValue())
+			Long sId = bimServerClientInterface.getBimsie1ServiceInterface().getSerializerByName("Ifc2x3tc1").getOid();
+		    List<Long> list = project.getRevisions();
+		    SRevision revision1 = bimServerClientInterface.getBimsie1ServiceInterface().getRevision(roid);
+		    SRevision revision2 = null;
+		    for (Long roid2 : list)
+		    {
+		        if (roid != roid2)
+		    	{
+		        	SRevision revision3 = bimServerClientInterface.getBimsie1ServiceInterface().getRevision(roid2);
+			    	if (revision2 != null)
 			    	{
- 			      LOGGER.info("Comparing version: " + roid1 + "with: " + roid2 + " using serializer: " + sId);
-	 			  final BimServerClientInterface client = LocalDevSetup.setupJson("http://localhost:8080");
-				      Long compareId = client.getServiceInterface().downloadCompareResults(sId , roid1, roid2, new Long(393298), SCompareType.values()[0], true);
- 				  LOGGER.info("Compare id: " + compareId);
+			    		if (revision3.getDate().getTime() > revision2.getDate().getTime())
+			    		    revision2 = revision3;
 			    	}
-			    }
+			    	else 
+					{
+		    		    revision2 = revision3;					
+			    	}
+		    	}
+		    }
+	    	if (revision2.getOid() != roid)
+	    	{
+	    	  
+		      LOGGER.info("Comparing version: " + revision1.getComment() + "(" + revision1.getDate() + ") with: " + revision2.getComment() + "(" + revision2.getDate() + ") using serializer: " + "Ifc2x3tc1");
+ 			  final BimServerClientInterface client = LocalDevSetup.setupJson("http://localhost:8080");
+ 			  SModelComparePluginConfiguration modelCompareConfig = client.getPluginInterface().getModelCompareByName("org.bimserver.changecompare.ConstructionChangeBasedModelComparePlugin");
+ 			  long configId = modelCompareConfig.getOid();
+ 			  Long compareId = client.getServiceInterface().downloadCompareResults(sId, new Long(roid), new Long(revision2.getOid()), new Long(configId), SCompareType.values()[0], true);
+			  LOGGER.info("Compare id: " + compareId);
+	    	}
 		} catch (PublicInterfaceNotFoundException e) {
 			e.printStackTrace();
 		}
